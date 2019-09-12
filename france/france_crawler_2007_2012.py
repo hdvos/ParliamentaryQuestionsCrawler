@@ -73,14 +73,22 @@ def process_link(row:pd.Series) -> dict:
     # input()
     table = table[0].contents
 
-    ministere_interroge = str(table[5].contents[1].contents[1].contents[0]).strip()
+    try:
+        ministere_interroge = str(table[5].contents[1].contents[1].contents[0]).strip()
+    except:
+        ministere_interroge = "UNABLE TO CRAWL"
     data['ministere_interroge'] = ministere_interroge
     
-
-    ministere_attributaire = str(table[6].contents[1].contents[1].contents[0]).strip()
+    try:
+        ministere_attributaire = str(table[6].contents[1].contents[1].contents[0]).strip()
+    except:
+        ministere_attributaire = "UNABLE TO CRAWL"
     data["ministere_attributaire"] = ministere_attributaire
     
-    rubrique = str(table[24].contents[1].contents[1].contents[1].contents[0]).strip()
+    try:
+        rubrique = str(table[24].contents[1].contents[1].contents[1].contents[0]).strip()
+    except:
+        rubrique = "UNABLE TO CRAWL"
     # rubrique = str(rubrique[0].contents[2]).strip()
     data["rubrique"] = rubrique
 
@@ -88,27 +96,40 @@ def process_link(row:pd.Series) -> dict:
     titre = ''
     data['titre'] = titre
 
-    tete_de_analyse = str(table[24].contents[2].contents[1].contents[1].contents[0]).strip()
+    try:
+        tete_de_analyse = str(table[24].contents[2].contents[1].contents[1].contents[0]).strip()
+    except:
+        tete_de_analyse = "UNABLE TO CRAWL"
 
-    body_analyse =  str(table[24].contents[3].contents[1].contents[1].contents[0]).strip()
+    try:
+        body_analyse =  str(table[24].contents[3].contents[1].contents[1].contents[0]).strip()
+    except:
+        body_analyse = "UNABLE TO CRAWL"
 
     analyse = f'{tete_de_analyse} - {body_analyse}'
 
     data['analyse'] = analyse
 
-
-    question_no = str(table[1].contents[0].contents[1].contents[1].contents[0]).strip()
-    question_no = int(question_no)
+    try:
+        question_no = str(table[1].contents[0].contents[1].contents[1].contents[0]).strip()
+        question_no = int(question_no)
+    except:
+        question_no = "UNABLE TO CRAWL"
     data["question_no"] = question_no
     
     question_mode = ''
     data["question_mode"] = question_mode
 
-    
-    asker = str(table[1].contents[2].contents[1].contents[-2].contents[0]).strip()
+    try:
+        asker = str(table[1].contents[2].contents[1].contents[-2].contents[0]).strip()
+    except:
+        asker = "UNABLE TO CRAWL"
     data["asker"] = asker
 
-    question_publiee = str(table[8].contents[1].contents[1].contents[0].contents[0]).strip()
+    try:
+        question_publiee = str(table[8].contents[1].contents[1].contents[0].contents[0]).strip()
+    except:
+        question_publiee = "UNABLE TO CRAWL"
     data["question_publiee"] = question_publiee
     
     try:
@@ -125,25 +146,29 @@ def process_link(row:pd.Series) -> dict:
     
     data["url"] = url
 
-    # text_de_la_question = soup.select(".question > p:nth-child(2)")
-    # text_de_la_question = str(text_de_la_question[0].contents[0]).strip()
-    # text_de_la_question = text_de_la_question.replace('\n', ' ')
-    # text_de_la_question = text_de_la_question.replace('\t', ' ')
-    # text_de_la_question = re.sub(r'\s+', ' ', text_de_la_question)
-    # data["text_de_la_question"] = text_de_la_question
-
-    # try:
-    #     texte_de_la_response = soup.select(".reponse_contenu")
-    #     texte_de_la_response = str(texte_de_la_response[0].contents[0]).strip()
-    #     texte_de_la_response = texte_de_la_response.replace("\n", ' ')
-    #     texte_de_la_response = texte_de_la_response.replace("\t", ' ')
-    #     texte_de_la_response = re.sub(r'\s+', ' ', texte_de_la_response)
-
-    #     data["text_de_la_response"] = texte_de_la_response
-    # except Exception as e: # Sometimes there is not answer available.
-    #     data["text_de_la_response"] = "NULL"
+    try:
+        text_de_la_question = str(table[24].contents[5].contents[1].contents[1].contents[0]).strip()
+        text_de_la_question = text_de_la_question.replace('\n', ' ')
+        text_de_la_question = text_de_la_question.replace('\t', ' ')
+        text_de_la_question = re.sub(r'\s+', ' ', text_de_la_question)
+    except:
+        text_de_la_question = "UNABLE TO CRAWL"
     
-    # return data
+    data["text_de_la_question"] = text_de_la_question
+
+    try:
+        texte_de_la_response = table[24].contents[6].contents[1].contents[1].contents
+        texte_de_la_response = '----'.join(texte_de_la_response)
+        input('response '+texte_de_la_response)
+        texte_de_la_response = texte_de_la_response.replace("\n", ' ')
+        texte_de_la_response = texte_de_la_response.replace("\t", ' ')
+        texte_de_la_response = re.sub(r'\s+', ' ', texte_de_la_response)
+
+        data["text_de_la_response"] = texte_de_la_response
+    except Exception as e: # Sometimes there is not answer available.
+        data["text_de_la_response"] = ""
+    
+    return data
     
 
 def process_links_table(links_table:pd.DataFrame) -> pd.DataFrame:
@@ -202,12 +227,12 @@ if __name__ == "__main__":
                     
                 try:
 
-                    try:
-                        obj = driver.switch_to.alert
-                        print(obj)
-                    except Exception as e:
-                        print("no alert object")
-                        print(e)
+                    # try:
+                    #     obj = driver.switch_to.alert
+                    #     print(obj)
+                    # except Exception as e:
+                    #     print("no alert object")
+                    #     print(e)
                     links_subTable = get_links(driver)
 
                     results_df = process_links_table(links_subTable)
