@@ -136,7 +136,7 @@ def process_link(row:pd.Series) -> dict:
         question_retire = str(table[3].contents[0].contents[3].contents[0]).strip()
         data["question_retire"] = question_retire
     except IndexError as e:     # Sometimes there is no response available.
-        input(IndexError)
+        # input(IndexError)
         data["question_retire"] = "NULL"
 
     if "fin de mandat" in str(r.text):      # Don't know what this is, but in case it might turn out relevant I keep it.
@@ -159,7 +159,7 @@ def process_link(row:pd.Series) -> dict:
     try:
         texte_de_la_response = table[24].contents[6].contents[1].contents[1].contents
         texte_de_la_response = '----'.join(texte_de_la_response)
-        input('response '+texte_de_la_response)
+        # input('response '+texte_de_la_response)
         texte_de_la_response = texte_de_la_response.replace("\n", ' ')
         texte_de_la_response = texte_de_la_response.replace("\t", ' ')
         texte_de_la_response = re.sub(r'\s+', ' ', texte_de_la_response)
@@ -236,7 +236,7 @@ if __name__ == "__main__":
                     links_subTable = get_links(driver)
 
                     results_df = process_links_table(links_subTable)
-                    print(results_df)
+                    # print(results_df)
                     # Append the results table
                     results_df.to_csv(RESULTS_TABLE_FILE, sep='\t', mode = 'a', header = False)     
                     # Append the links table
