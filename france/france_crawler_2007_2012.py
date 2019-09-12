@@ -66,50 +66,56 @@ def process_link(row:pd.Series) -> dict:
 
     r = requests.get(url)
     soup = BeautifulSoup(r.text, features="lxml")
+    # print(soup)
 
-    # Retrieve all relevant info with the xpaths
-    ministere_interroge = soup.select("div.question_col50:nth-child(1)")
-    ministere_interroge = str(ministere_interroge[0].contents[2]).strip()
+    table = soup.findAll("table")
+    # print(table[0].contents)
+    # input()
+    table = table[0].contents
+
+    ministere_interroge = str(table[5].contents[1].contents[1].contents[0]).strip()
     data['ministere_interroge'] = ministere_interroge
+    
 
-    ministere_attributaire = soup.select("div.question_col50:nth-child(2)")
-    ministere_attributaire = str(ministere_attributaire[0].contents[2]).strip()
+    ministere_attributaire = str(table[6].contents[1].contents[1].contents[0]).strip()
     data["ministere_attributaire"] = ministere_attributaire
-
-    rubrique = soup.select("div.question_col33:nth-child(1) > p:nth-child(1)")
-    rubrique = str(rubrique[0].contents[2]).strip()
+    
+    rubrique = str(table[24].contents[1].contents[1].contents[1].contents[0]).strip()
+    # rubrique = str(rubrique[0].contents[2]).strip()
     data["rubrique"] = rubrique
 
-    titre = soup.select("div.question_col33:nth-child(2) > p:nth-child(1)")
-    titre = str(titre[0].contents[1]).strip()
+
+    titre = ''
     data['titre'] = titre
 
-    analyse = soup.select("div.question_col33:nth-child(3) > p:nth-child(1)")
-    analyse = str(analyse[0].contents[2]).strip()
+    tete_de_analyse = str(table[24].contents[2].contents[1].contents[1].contents[0]).strip()
+
+    body_analyse =  str(table[24].contents[3].contents[1].contents[1].contents[0]).strip()
+
+    analyse = f'{tete_de_analyse} - {body_analyse}'
+
     data['analyse'] = analyse
 
-    question_no = soup.select("div.question_big_content:nth-child(1)")
-    question_no = str(question_no[0].contents[0]).strip()
-    question_no = int(question_no.replace('Question N° ', ''))
+
+    question_no = str(table[1].contents[0].contents[1].contents[1].contents[0]).strip()
+    question_no = int(question_no)
     data["question_no"] = question_no
     
-    question_mode = soup.select("div.question_big_content:nth-child(3)")
-    question_mode = str(question_mode[0].contents[0]).strip()
+    question_mode = ''
     data["question_mode"] = question_mode
 
-    asker = soup.select("#question_col80 > span:nth-child(1) > a:nth-child(1)")
-    asker = str(asker[0].contents[0]).strip()
+    
+    asker = str(table[1].contents[2].contents[1].contents[-2].contents[0]).strip()
     data["asker"] = asker
 
-    question_publiee = soup.select(".question_publish_date > div:nth-child(1) > span:nth-child(1)")
-    question_publiee = str(question_publiee[0].contents[0]).strip()
+    question_publiee = str(table[8].contents[1].contents[1].contents[0].contents[0]).strip()
     data["question_publiee"] = question_publiee
     
     try:
-        question_retire = soup.select(".question_publish_date > div:nth-child(2) > span:nth-child(1)")
-        question_retire = str(question_retire[0].contents[0]).strip()
+        question_retire = str(table[3].contents[0].contents[3].contents[0]).strip()
         data["question_retire"] = question_retire
     except IndexError as e:     # Sometimes there is no response available.
+        input(IndexError)
         data["question_retire"] = "NULL"
 
     if "fin de mandat" in str(r.text):      # Don't know what this is, but in case it might turn out relevant I keep it.
@@ -119,25 +125,25 @@ def process_link(row:pd.Series) -> dict:
     
     data["url"] = url
 
-    text_de_la_question = soup.select(".question > p:nth-child(2)")
-    text_de_la_question = str(text_de_la_question[0].contents[0]).strip()
-    text_de_la_question = text_de_la_question.replace('\n', ' ')
-    text_de_la_question = text_de_la_question.replace('\t', ' ')
-    text_de_la_question = re.sub(r'\s+', ' ', text_de_la_question)
-    data["text_de_la_question"] = text_de_la_question
+    # text_de_la_question = soup.select(".question > p:nth-child(2)")
+    # text_de_la_question = str(text_de_la_question[0].contents[0]).strip()
+    # text_de_la_question = text_de_la_question.replace('\n', ' ')
+    # text_de_la_question = text_de_la_question.replace('\t', ' ')
+    # text_de_la_question = re.sub(r'\s+', ' ', text_de_la_question)
+    # data["text_de_la_question"] = text_de_la_question
 
-    try:
-        texte_de_la_response = soup.select(".reponse_contenu")
-        texte_de_la_response = str(texte_de_la_response[0].contents[0]).strip()
-        texte_de_la_response = texte_de_la_response.replace("\n", ' ')
-        texte_de_la_response = texte_de_la_response.replace("\t", ' ')
-        texte_de_la_response = re.sub(r'\s+', ' ', texte_de_la_response)
+    # try:
+    #     texte_de_la_response = soup.select(".reponse_contenu")
+    #     texte_de_la_response = str(texte_de_la_response[0].contents[0]).strip()
+    #     texte_de_la_response = texte_de_la_response.replace("\n", ' ')
+    #     texte_de_la_response = texte_de_la_response.replace("\t", ' ')
+    #     texte_de_la_response = re.sub(r'\s+', ' ', texte_de_la_response)
 
-        data["text_de_la_response"] = texte_de_la_response
-    except Exception as e: # Sometimes there is not answer available.
-        data["text_de_la_response"] = "NULL"
+    #     data["text_de_la_response"] = texte_de_la_response
+    # except Exception as e: # Sometimes there is not answer available.
+    #     data["text_de_la_response"] = "NULL"
     
-    return data
+    # return data
     
 
 def process_links_table(links_table:pd.DataFrame) -> pd.DataFrame:
@@ -205,12 +211,14 @@ if __name__ == "__main__":
                     links_subTable = get_links(driver)
 
                     results_df = process_links_table(links_subTable)
+                    print(results_df)
                     # Append the results table
                     results_df.to_csv(RESULTS_TABLE_FILE, sep='\t', mode = 'a', header = False)     
                     # Append the links table
                     links_subTable.to_csv(LINKS_TABLE_FILE, sep='\t', mode = 'a', header = False)
                     break
-                except:
+                except Exception as exc2:
+                    print(exc2)
                     if j == NTRIES - 1:     # If no more tries are left.
                         logging.warning(f"Could not parse {driver.current_url} after {NTRIES} tries")
                     continue
